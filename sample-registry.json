@@ -1,0 +1,82 @@
+{
+  "version": "1.0.0",
+  "base_url": "https://raw.githubusercontent.com/context-hub/context-hub/main",
+  "generated": "2026-02-01T00:00:00.000Z",
+  "entries": [
+    {
+      "id": "openai-chat",
+      "name": "OpenAI Chat API",
+      "description": "Chat completions with GPT models including streaming, function calling, and vision",
+      "source": "maintainer",
+      "tags": ["docs", "openai", "chat", "llm", "ai"],
+      "languages": [
+        {
+          "language": "javascript",
+          "versions": [
+            {
+              "version": "6.7.0",
+              "path": "libraries/openai/chat/javascript/6.7.0/CONTEXT.md",
+              "size": 45200,
+              "lastUpdated": "2025-11-12"
+            }
+          ],
+          "recommendedVersion": "6.7.0"
+        },
+        {
+          "language": "python",
+          "versions": [
+            {
+              "version": "1.52.0",
+              "path": "libraries/openai/chat/python/1.52.0/CONTEXT.md",
+              "size": 42000,
+              "lastUpdated": "2025-11-12"
+            }
+          ],
+          "recommendedVersion": "1.52.0"
+        }
+      ]
+    },
+    {
+      "id": "stripe-payments",
+      "name": "Stripe Payments API",
+      "description": "Payment processing with Stripe including payment intents, subscriptions, and webhooks",
+      "source": "maintainer",
+      "tags": ["docs", "stripe", "payments", "billing"],
+      "languages": [
+        {
+          "language": "javascript",
+          "versions": [
+            {
+              "version": "14.0.0",
+              "path": "libraries/stripe/payments/javascript/14.0.0/CONTEXT.md",
+              "size": 38000,
+              "lastUpdated": "2025-11-12"
+            }
+          ],
+          "recommendedVersion": "14.0.0"
+        }
+      ]
+    },
+    {
+      "id": "playwright-login-flows",
+      "name": "Playwright Login Flow Patterns",
+      "description": "Common login automation patterns for web apps using Playwright",
+      "source": "community",
+      "tags": ["skill", "browser", "automation", "playwright", "login", "testing"],
+      "languages": [
+        {
+          "language": "typescript",
+          "versions": [
+            {
+              "version": "1.0.0",
+              "path": "skills/browser/playwright-login-flows/typescript/1.0.0/CONTEXT.md",
+              "size": 12000,
+              "lastUpdated": "2026-01-15"
+            }
+          ],
+          "recommendedVersion": "1.0.0"
+        }
+      ]
+    }
+  ]
+}

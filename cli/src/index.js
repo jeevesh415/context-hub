@@ -1,0 +1,103 @@
+import chalk from 'chalk';
+import { Command } from 'commander';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { ensureRegistry } from './lib/cache.js';
+import { registerUpdateCommand } from './commands/update.js';
+import { registerCacheCommand } from './commands/cache.js';
+import { registerSearchCommand } from './commands/search.js';
+import { registerGetCommand } from './commands/get.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
+
+function printUsage() {
+  console.log(`
+${chalk.bold('chub')} — Context Hub CLI v${pkg.version}
+Search and retrieve LLM-optimized docs and skills.
+
+${chalk.bold.underline('Getting Started')}
+
+  ${chalk.dim('$')} chub update                          ${chalk.dim('# download the registry')}
+  ${chalk.dim('$')} chub search                          ${chalk.dim('# list everything available')}
+  ${chalk.dim('$')} chub search "stripe"                 ${chalk.dim('# fuzzy search')}
+  ${chalk.dim('$')} chub search stripe-payments          ${chalk.dim('# exact id → full detail')}
+  ${chalk.dim('$')} chub get stripe-payments js           ${chalk.dim('# print doc to terminal')}
+  ${chalk.dim('$')} chub get stripe-payments js -o doc.md ${chalk.dim('# save to file')}
+
+${chalk.bold.underline('Commands')}
+
+  ${chalk.bold('search')} [query]        Search docs and skills (no query = list all)
+  ${chalk.bold('get')} <id> [language]    Fetch a doc or skill content
+  ${chalk.bold('update')}                 Refresh the cached registry
+  ${chalk.bold('cache')} status|clear     Manage the local cache
+
+${chalk.bold.underline('Flags')}
+
+  --json                 Structured JSON output (for agents and piping)
+  --tags <csv>           Filter by tags (e.g. docs, skill, openai, browser)
+  --lang <language>      Filter by language (js, py, ts)
+  -o, --output <path>    Write content to file
+
+${chalk.bold.underline('Agent Piping Patterns')}
+
+  ${chalk.dim('# Get the top result id')}
+  ${chalk.dim('$')} chub search "stripe" --json | jq -r '.results[0].id'
+
+  ${chalk.dim('# Search → pick → fetch → save')}
+  ${chalk.dim('$')} ID=$(chub search "stripe" --json | jq -r '.results[0].id')
+  ${chalk.dim('$')} chub get "$ID" js -o .context/stripe.md
+
+  ${chalk.dim('# Fetch top 3 results')}
+  ${chalk.dim('$')} for ID in $(chub search "auth" --json | jq -r '.results[:3][].id'); do
+      chub get "$ID" -o ".context/\${ID}.md"
+    done
+
+${chalk.bold.underline('Multi-Source Config')} ${chalk.dim('(~/.chub/config.yaml)')}
+
+  ${chalk.dim('sources:')}
+  ${chalk.dim('  - name: community')}
+  ${chalk.dim('    url: https://cdn.contexthub.dev/v1')}
+  ${chalk.dim('  - name: internal')}
+  ${chalk.dim('    path: /path/to/local/docs')}
+
+  ${chalk.dim('# On id collision, use namespace: chub get internal/my-api')}
+`);
+}
+
+const program = new Command();
+
+program
+  .name('chub')
+  .description('Context Hub - search and retrieve LLM-optimized docs and skills')
+  .version(pkg.version)
+  .option('--json', 'Output as JSON (machine-readable)')
+  .action(() => {
+    printUsage();
+  });
+
+// Commands that don't need registry
+const SKIP_REGISTRY = ['update', 'cache', 'help'];
+
+program.hook('preAction', async (thisCommand) => {
+  const cmdName = thisCommand.args?.[0] || thisCommand.name();
+  if (SKIP_REGISTRY.includes(cmdName)) return;
+  if (thisCommand.parent?.name() === 'cache') return;
+  // Don't fetch registry for default action (no command)
+  if (cmdName === 'chub') return;
+  try {
+    await ensureRegistry();
+  } catch (err) {
+    process.stderr.write(`Warning: Could not load registry: ${err.message}\n`);
+    process.stderr.write(`Run \`chub update\` to initialize.\n`);
+    process.exit(1);
+  }
+});
+
+registerUpdateCommand(program);
+registerCacheCommand(program);
+registerSearchCommand(program);
+registerGetCommand(program);
+
+program.parse();
