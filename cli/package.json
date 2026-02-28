@@ -1,6 +1,6 @@
 {
-  "name": "@aisuite/chub",
-  "version": "0.1.0",
+  "name": "chub-dev",
+  "version": "0.2.0-beta.1",
   "description": "CLI for Context Hub - search and retrieve LLM-optimized docs and skills",
   "type": "module",
   "bin": {
@@ -8,7 +8,8 @@
   },
   "files": [
     "bin/",
-    "src/"
+    "src/",
+    "dist/"
   ],
   "engines": {
     "node": ">=18.0.0"
@@ -32,6 +33,7 @@
   },
   "homepage": "https://github.com/andrewyng/context-hub#readme",
   "scripts": {
+    "prepublish": "node bin/chub build ../content -o dist --base-url https://cdn.aichub.org/v1",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
