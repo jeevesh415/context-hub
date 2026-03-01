@@ -68,7 +68,7 @@ ${chalk.bold.underline('Multi-Source Config')} ${chalk.dim('(~/.chub/config.yaml
   ${chalk.dim('  - name: internal')}
   ${chalk.dim('    path: /path/to/local/docs')}
 
-  ${chalk.dim('# On id collision, use source: prefix: chub get docs internal:openai/chat')}
+  ${chalk.dim('# On id collision, use source: prefix: chub get internal:openai/chat')}
 `);
 }
 

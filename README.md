@@ -19,7 +19,7 @@ npm install -g @aisuite/chub
 ```bash
 chub update                                    # download the registry
 chub search "stripe"                           # find what's available
-chub get docs stripe/payments --lang python    # fetch current docs
+chub get stripe/api --lang js                  # fetch current docs
 ```
 
 That's it. Search, fetch, use. No hallucinated parameters, no outdated patterns.
@@ -31,7 +31,7 @@ That's it. Search, fetch, use. No hallucinated parameters, no outdated patterns.
 ID=$(chub search "stripe payments" --json | jq -r '.results[0].id')
 
 # Agent fetches and reads them:
-chub get docs "$ID" --lang python -o .context/stripe.md
+chub get "$ID" --lang python -o .context/stripe.md
 
 # Now it writes correct code against the latest API.
 ```
@@ -39,7 +39,7 @@ chub get docs "$ID" --lang python -o .context/stripe.md
 For reusable patterns — login flows, deployment scripts, auth integrations — agents fetch skills:
 
 ```bash
-chub get skills playwright-community/login-flows -o .claude/skills/login-flows/SKILL.md
+chub get playwright-community/login-flows -o .claude/skills/login-flows/SKILL.md
 ```
 
 The skill is installed. The agent discovers it automatically in every future session.
@@ -49,8 +49,7 @@ The skill is installed. The agent discovers it automatically in every future ses
 | Command | Purpose |
 |---------|---------|
 | `chub search [query]` | Search docs and skills (no query = list all) |
-| `chub get docs <ids...>` | Fetch documentation content |
-| `chub get skills <ids...>` | Fetch skill content |
+| `chub get <ids...>` | Fetch docs or skills by ID |
 | `chub feedback <id> <up\|down>` | Rate a doc or skill |
 | `chub update` | Refresh the cached registry |
 | `chub cache status\|clear` | Manage the local cache |
