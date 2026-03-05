@@ -102,7 +102,7 @@ program.hook('preAction', async (thisCommand) => {
     await ensureRegistry();
   } catch (err) {
     const globalOpts = thisCommand.optsWithGlobals?.() || {};
-    error(`Registry not available: ${err.message}. Run \`chub update\` to initialize.`, globalOpts);
+    error(`Registry not available: ${err.message}. Run \`chub update\` to refresh remote registries, or check that local source paths in ~/.chub/config.yaml are correct.`, globalOpts);
   }
 });
 

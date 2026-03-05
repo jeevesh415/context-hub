@@ -57,7 +57,7 @@ async function fetchEntries(ids, opts, globalOpts) {
 
     const entryFile = resolveEntryFile(resolved, type);
     if (entryFile.error) {
-      error(`No content file found for "${id}".`, globalOpts);
+      error(`No content available for "${id}". Check that the source contains a valid DOC.md or SKILL.md, or run \`chub update\` to refresh remote registries.`, globalOpts);
     }
 
     // Determine which reference files exist (beyond DOC.md/SKILL.md)
@@ -88,7 +88,7 @@ async function fetchEntries(ids, opts, globalOpts) {
         results.push({ id: entry.id, type, content, path: entryFile.filePath, additionalFiles: refFiles });
       }
     } catch (err) {
-      error(`Failed to fetch "${id}": ${err.message}`, globalOpts);
+      error(`Failed to load "${id}": ${err.message}`, globalOpts);
     }
   }
 
