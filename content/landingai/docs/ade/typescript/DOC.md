@@ -70,6 +70,7 @@ Converts documents to structured markdown with visual grounding.
 | `document_url` | `string \| null` | One required | Remote document URL |
 | `model` | `string \| null` | No | Model version (default: `dpt-2-latest`) |
 | `split` | `"page" \| null` | No | Split by pages |
+| `password` | `string \| null` | No | Decrypt password-protected files (requires ZDR enabled) |
 | `saveTo` | `string` | No | Directory to save `{filename}_parse_output.json` |
 
 ### Returns `ParseResponse`
@@ -239,7 +240,7 @@ for (const split of splitResponse.splits) {
 
 ## 4. Parse Jobs (Async, Large Files)
 
-For files >50MB, use asynchronous processing.
+For files >50MB or >50 pages, use asynchronous processing. Supports files up to **1 GB** or **6,000 pages**.
 
 ### `parseJobs.create()` Arguments
 
@@ -327,7 +328,7 @@ All errors inherit from `LandingAIADEError`. Import from `"landingai-ade"`:
 | `APIConnectionError` | — | Network failure |
 | `APIConnectionTimeoutError` | — | Request timeout (extends `APIConnectionError`) |
 
-Note: HTTP 206 (Partial Content) is returned as a successful response with `schema_violation_error` or `failed_pages` in metadata. HTTP 402 (Payment Required) indicates insufficient credits. HTTP 413 (Payload Too Large) means the file exceeds the sync parse limit — use Parse Jobs API.
+Note: HTTP 206 (Partial Content) is returned as a successful response with `schema_violation_error` or `failed_pages` in metadata. HTTP 402 (Payment Required) indicates insufficient credits.
 
 ### Retry with Fallback to Jobs
 
@@ -373,7 +374,7 @@ interface ParseResponse {
   markdown: string;
   chunks: Chunk[];
   grounding: Record<string, Grounding>;
-  splits?: Split[];
+  splits: Split[];  // Always present — contains a single "full" split by default
   metadata: Metadata;
 }
 
@@ -513,7 +514,6 @@ Top-level grounding entries may include `confidence` (float, 0.0–1.0) and `low
 | 400 | Bad Request | Invalid request due to malformed input or unsupported version | Review error message for specific issue |
 | 401 | Unauthorized | Missing or invalid API key | Check VISION_AGENT_API_KEY |
 | 402 | Payment Required | Account does not have enough credits | Verify correct API key; add credits |
-| 413 | Payload Too Large | File exceeds sync parse limit | Use Parse Jobs API |
 | 422 | Unprocessable Entity | Input validation failed | Review request parameters and schema JSON |
 | 429 | Too Many Requests | Rate limit exceeded | Implement exponential backoff |
 | 500 | Internal Server Error | Server error during processing | Retry with backoff |

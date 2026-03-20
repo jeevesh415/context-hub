@@ -3,7 +3,7 @@ name: sdk
 description: "Python SDK reference for LandingAI's Agentic Document Extraction (ADE). Includes Pydantic schema extraction, async processing, error handling, save_to, visual grounding, table cell lookup, and complete API context."
 metadata:
   languages: "python"
-  versions: "0.1.0"
+  versions: "1.6.0"
   updated-on: "2026-03-04"
   source: maintainer
   tags: "landingai,ade,python,sdk,pydantic,document-extraction,parse,extract,split,async"
@@ -62,6 +62,7 @@ Converts documents to structured markdown with visual grounding.
 | `document_url` | `str \| None` | One required | Remote document URL |
 | `model` | `str \| None` | No | Model version (default: `dpt-2-latest`) |
 | `split` | `"page" \| None` | No | Split by pages |
+| `password` | `str \| None` | No | Decrypt password-protected files (requires ZDR enabled) |
 | `save_to` | `str \| None` | No | Directory to save `{filename}_parse_output.json` |
 
 ### Returns `ParseResponse`
@@ -90,6 +91,8 @@ tables = [c for c in response.chunks if c.type == "table"]
 ```
 
 ### Visual Grounding and Table Cells
+
+> **Important:** `response.grounding` is a `dict[str, Grounding]` — the outer container is a dict (so `.items()`, `.get()` work), but each **value** is a Pydantic model. Use **attribute access** (`grounding.type`, `grounding.box.left`) not dict access (`grounding["type"]`). In contrast, `response.extraction` IS a plain dict — `extraction["field"]` is correct.
 
 ```python
 for chunk in response.chunks:
@@ -260,7 +263,7 @@ for split in splits.splits:
 
 ## 4. Parse Jobs (Async, Large Files)
 
-For files >50MB, use asynchronous processing.
+For files >50MB or >50 pages, use asynchronous processing. Supports files up to **1 GB** or **6,000 pages**.
 
 ### `parse_jobs.create()` Arguments
 
@@ -341,7 +344,7 @@ All exceptions inherit from `LandingAiadeError`:
 | `APIConnectionError` | — | Network failure |
 | `APITimeoutError` | — | Request timeout |
 
-`APIStatusError` is the base for all HTTP errors and has a `status_code` attribute. Note: HTTP 206 (Partial Content) is returned as a successful response with `schema_violation_error` or `failed_pages` in metadata. HTTP 402 (Payment Required) indicates insufficient credits. HTTP 413 (Payload Too Large) means the file exceeds the sync parse limit — use Parse Jobs API.
+`APIStatusError` is the base for all HTTP errors and has a `status_code` attribute. Note: HTTP 206 (Partial Content) is returned as a successful response with `schema_violation_error` or `failed_pages` in metadata. HTTP 402 (Payment Required) indicates insufficient credits.
 
 ### Retry with Fallback to Jobs
 
@@ -355,9 +358,9 @@ def parse_with_retry(client, file_path, max_retries=3):
         except RateLimitError:
             time.sleep(2 ** attempt * 10)
         except (APITimeoutError, APIStatusError) as e:
-            if isinstance(e, APIStatusError) and e.status_code not in (413, 504):
+            if isinstance(e, APIStatusError) and e.status_code != 504:
                 raise
-            print("File too large or timeout — switching to parse jobs")
+            print("Timeout — switching to parse jobs")
             job = client.parse_jobs.create(document=Path(file_path))
             return poll_job(client, job.job_id)
         except APIConnectionError:
@@ -459,7 +462,6 @@ Top-level grounding entries may include `confidence` (float, 0.0–1.0) and `low
 | 400 | Bad Request | Invalid request due to malformed input or unsupported version | Review error message for specific issue |
 | 401 | Unauthorized | Missing or invalid API key | Check VISION_AGENT_API_KEY |
 | 402 | Payment Required | Account does not have enough credits | Verify correct API key; add credits |
-| 413 | Payload Too Large | File exceeds sync parse limit | Use Parse Jobs API |
 | 422 | Unprocessable Entity | Input validation failed | Review request parameters and schema JSON |
 | 429 | Too Many Requests | Rate limit exceeded | Implement exponential backoff |
 | 500 | Internal Server Error | Server error during processing | Retry with backoff |
